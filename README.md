@@ -19,9 +19,9 @@ exactly the same as the original (just use diffrent `import`)
 ## show me
 go from this:
 <p align="center">
-  <img src="https://raw.githubusercontent.com/seamia/memviz/main/.media/before.svg">
+  <img src="https://raw.githubusercontent.com/seamia/memviz/master/.media/before.svg">
 </p>
 to this:
 <p align="center">
-  <img src="https://raw.githubusercontent.com/seamia/memviz/main/.media/after.svg">
+  <img src="https://raw.githubusercontent.com/seamia/memviz/master/.media/after.svg">
 </p>
