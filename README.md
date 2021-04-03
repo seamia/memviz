@@ -16,6 +16,13 @@ in no particular order:
 ## usage
 exactly the same as the original (just use diffrent `import`)
 
+## config(uration) file(s)
+see [this](https://raw.githubusercontent.com/seamia/memviz/master/memviz.options) example of a configuration file
+
+the config file should be named `memviz.options`, and be located in one of the following two places:
+* current directory of you app
+* home directory of current user
+
 ## show me
 go from this:
 <p align="center">
