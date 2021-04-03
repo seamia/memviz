@@ -1,0 +1,38 @@
+{
+	"maxStringLength": 32,
+	"maxSliceLength": 32,
+	"maxMapEntries": 32,
+
+	"discard": {
+		"struct:tree.wild": 1, 
+		"struct:File.Scope": 1,
+		"struct:File.Unresolved": 1,
+		"struct:File.Comments": 1,
+		"map:password.": 1,
+		"map:credentials.": 2
+	},
+	"substitute": {
+		"ObjKind": {
+			"0": "bad",
+			"1": "package",
+			"2": "const",
+			"3": "type",
+			"4": "var",
+			"5": "func",
+			"6": "label"
+		}
+	},
+
+	"colors": "ast.colors",
+	"link.pointer": "[color=\"orange1\"]",
+	"link.array": "[color=\"slateblue3\"]",
+
+	"collapsePointerNodes": true,
+	"collapseSingleSliceNodes": true,
+	"suppresHeader": false,
+
+	"colorBackground": "mintcream",
+	"colorDefault": "thistle1",
+	"fontName": "Cascadia Code",
+	"fontSize": "10"
+}

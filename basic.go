@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 func (m *mapper) mapPtrIface(iVal reflect.Value, inlineable bool) (nodeID, string) {
@@ -22,7 +23,7 @@ func (m *mapper) mapPtrIface(iVal reflect.Value, inlineable bool) (nodeID, strin
 
 	if !inlineable {
 		id := m.newBasicNode(iVal, summary)
-		fmt.Fprintf(m.writer, "  %d:name -> %d:name;\n", id, pointeeNode)
+		m.addConnection(id, portTitle, pointeeNode)
 		return id, summary
 	}
 
@@ -33,9 +34,15 @@ func (m *mapper) mapString(stringVal reflect.Value, inlineable bool) (nodeID, st
 	// We want the output to look like a Go quoted string literal. The first
 	// Quote achieves that. The second is to quote it for graphviz itself.
 	quoted := strconv.Quote(strconv.Quote(stringVal.String()))
+
+	quoted = strings.ReplaceAll(strings.ReplaceAll(quoted, "<", "\\<"), ">", "\\>")
+
 	// Lastly, quoting adds quotation-marks around the string, but it is
 	// inserted into a graphviz string literal, so we have to remove those.
 	quoted = quoted[1 : len(quoted)-1]
+
+	quoted = normalizeString(quoted)
+
 	if inlineable {
 		return 0, quoted
 	}
@@ -68,4 +75,15 @@ func (m *mapper) mapUint(numVal reflect.Value, inlineable bool) (nodeID, string)
 	}
 	m.nodeSummaries[getNodeKey(numVal)] = "uint"
 	return m.newBasicNode(numVal, printed), "uint"
+}
+
+func normalizeString(original string) string {
+	maxAllowedStringLen := Options().MaxStringLength
+
+	if len(original) <= maxAllowedStringLen {
+		return original
+	}
+	half := (maxAllowedStringLen / 2) - 1
+
+	return original[:half] + ".." + original[len(original)-half:]
 }

@@ -1,4 +1,4 @@
-package memviz // import "github.com/bradleyjkemp/memviz"
+package memviz // import "github.com/seamia/memviz"
 
 import (
 	"fmt"
@@ -16,8 +16,20 @@ import (
 //	MaxDepth:                1,
 //}
 
-type nodeKey string
-type nodeID int
+type (
+	nodeKey string
+	nodeID  int
+
+	connection struct {
+		fromNode nodeID
+		fromPort string
+
+		toNode nodeID
+		toPort string
+
+		style int
+	}
+)
 
 var nilKey nodeKey = "nil0"
 
@@ -26,6 +38,10 @@ type mapper struct {
 	nodeIDs             map[nodeKey]nodeID
 	nodeSummaries       map[nodeKey]string
 	inlineableItemLimit int
+
+	nodes       []*cnode
+	connections []connection
+	comment     string
 }
 
 // Map prints the given datastructure using the default config
@@ -35,6 +51,15 @@ func Map(w io.Writer, is ...interface{}) {
 
 // Map prints out a Graphviz digraph of the given datastructure to the given io.Writer
 func (c *Config) Map(w io.Writer, is ...interface{}) {
+	var comment string
+	lenis := len(is)
+	if lenis > 1 {
+		if txt, converts := is[lenis-1].(string); converts {
+			comment = strings.ReplaceAll(txt, "\"", "\\")
+			is = is[:lenis-1]
+		}
+	}
+
 	var iVals []reflect.Value
 	for _, i := range is {
 		iVal := reflect.ValueOf(i)
@@ -49,19 +74,25 @@ func (c *Config) Map(w io.Writer, is ...interface{}) {
 		iVals = append(iVals, iVal)
 	}
 
+	comment = strings.ReplaceAll(comment, "\\", "/")
+
 	m := &mapper{
 		w,
 		map[nodeKey]nodeID{nilKey: 0},
 		map[nodeKey]string{nilKey: "nil"},
 		2,
+		nil,
+		nil,
+		comment,
 	}
 
-	fmt.Fprintln(w, "digraph structs {")
-	fmt.Fprintln(w, "  node [shape=Mrecord];")
+	// fmt.Fprintln(w, "digraph structs {")
+	// fmt.Fprintln(w, "  node [shape=Mrecord];")
 	for _, iVal := range iVals {
 		m.mapValue(iVal, 0, false)
 	}
-	fmt.Fprintln(w, "}")
+	// fmt.Fprintln(w, "}")
+	m.write(w)
 }
 
 // for values that aren't addressable keep an incrementing counter instead
@@ -93,7 +124,8 @@ func (m *mapper) getNodeID(iVal reflect.Value) nodeID {
 
 func (m *mapper) newBasicNode(iVal reflect.Value, text string) nodeID {
 	id := m.getNodeID(iVal)
-	fmt.Fprintf(m.writer, "  %d [label=\"<name> %s\"];\n", id, text)
+	m.addNode(createNode(id, text))
+	// fmt.Fprintf(m.writer, "  %d [label=\"<name> %s\"];\n", id, text)
 	return id
 }
 
@@ -142,6 +174,8 @@ var escaper = strings.NewReplacer(
 	"{", "\\{",
 	"}", "\\}",
 	"\"", "\\\"",
+	">", "\\>",
+	"<", "\\<",
 )
 
 func escapeString(s string) string {
